@@ -1,170 +1,169 @@
-# Документация для парсера
+# Documentation for the parser
 
-## Описание
+## Description
 
-Этот парсер на входе принимает ИНН организации и собирает с официальных публичных сайтов следующую информацию:
-- Общую электронную почту организации (канцелярии или приемной).
-- ФИО и должности сотрудников компании.
+This parser accepts the organization's TIN as input and collects the following information from official public sites:
+- General email of the organization (office or reception).
+- Full names and positions of company employees.
 
-## Требования
+## Requirements
 
-### Библиотеки
+### Libraries
 
-Для работы парсера необходимы следующие библиотеки Python:
-- `requests` для отправки HTTP-запросов.
-- `BeautifulSoup` из библиотеки `bs4` для парсинга HTML-кода.
-- `pandas` для работы с данными и сохранения их в Excel.
+The following Python libraries are required for the parser to work:
+- `requests` for sending HTTP requests.
+- `BeautifulSoup` from the `bs4` library for parsing HTML code.
+- `pandas` for working with data and saving it to Excel.
 
-Установите их с помощью pip:
+Install them using pip:
 
 ```bash
 pip install requests beautifulsoup4 pandas
 ```
 
-## Шаги реализации
+## Implementation steps
 
-### 1. Получение данных об организации по ИНН
+### 1. Getting data about an organization by TIN
 
-Для получения данных об организации по ИНН используется публичный API.
+A public API is used to get data about an organization by TIN.
 
 ```python
 import requests
 
 def get_company_data_by_inn(find_inn):
-    """Функция для получения данных об организации по ИНН через публичный API."""
-    try:
-        # Используем публичный API для получения данных об организации по ИНН
-        url = f"https://api.example.com/company/{find_inn}"
-        response = requests.get(url)
-        response.raise_for_status()  # Проверка на HTTP ошибки
-        return response.json()
-    except requests.RequestException as e:
-        print(f"Ошибка при получении данных об организации по ИНН: {e}")
-        return None
+"""Function for getting company data by TIN via public API."""
+try:
+# Using public API to get company data by TIN
+url = f"https://api.example.com/company/{find_inn}"
+response = requests.get(url)
+response.raise_for_status() # Check for HTTP errors
+return response.json()
+except requests.RequestException as e:
+print(f"Error getting company data by TIN: {e}")
+return None
 ```
 
-### 2. Извлечение данных с сайтов
+### 2. Extracting data from websites
 
-#### Извлечение электронной почты
+#### Extracting email
 
-Электронная почта организации обычно находится в шапке, подвале или разделе контактов сайта.
+An organization's email is usually located in the header, footer, or contacts section of a website.
 
 ```python
 from bs4 import BeautifulSoup
 
 def extract_email_from_website(url):
-    """Функция для извлечения электронной почты с веб-сайта организации."""
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Проверка на HTTP ошибки
-        soup = BeautifulSoup(response.text, "html.parser")
-        email = None
+"""A function to extract email from an organization's website."""
+try:
+response = requests.get(url)
+response.raise_for_status() # Check for HTTP errors
+soup = BeautifulSoup(response.text, "html.parser")
+email = None
 
-        # Ищем email в шапке, подвале или разделе контактов
-        for tag in soup.find_all(["a", "p", "div"]):
-            if "mailto:" in tag.get("href", ""):
-                email = tag.get("href").replace("mailto:", "")
-                break
-            elif "@" in tag.text:
-                email = tag.text.strip()
-                break
+# Find email in header, footer, or contacts
+for tag in soup.find_all(["a", "p", "div"]):
+if "mailto:" in tag.get("href", ""):
+email = tag.get("href").replace("mailto:", "")
+break
+elif "@" in tag.text:
+email = tag.text.strip()
+break
 
-        return email
-    except requests.RequestException as e:
-        print(f"Ошибка при извлечении электронной почты с сайта: {e}")
-        return None
+return email
+except requests.RequestException as e:
+print(f"Error extracting email from website: {e}")
+return None
 ```
 
-#### Извлечение ФИО и должностей сотрудников
+#### Extracting employee names and positions
 
-Информация о сотрудниках обычно находится в разделе "Команда", "Руководство" или "Контакты".
+Employee information is usually located in the "Team", "Management" or "Contacts" section.
 
 ```python
 def extract_employees_from_website(url):
-    """Функция для извлечения ФИО и должности сотрудников с веб-сайта организации."""
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Проверка на HTTP ошибки
-        soup = BeautifulSoup(response.text, "html.parser")
+"""A function to extract employees' names and job titles from an organization's website."""
+try:
+response = requests.get(url)
+response.raise_for_status() # Check for HTTP errors
+soup = BeautifulSoup(response.text, "html.parser")
 
-        employees = []
-        for section in soup.find_all(["section", "div"]):
-            if "Команда" in section.text or "Руководство" in section.text:
-                for person in section.find_all(["p", "div"]):
-                    name = person.find("h3") or person.find("b")
-                    position = person.find("span") or person.find("i")
-                    if name and position:
-                        employees.append(
-                            {
-                                "name": name.text.strip(),
-                                "position": position.text.strip(),
-                            }
-                        )
+employees = []
+for section in soup.find_all(["section", "div"]):
+if "Team" in section.text or "Management" in section.text:
+for person in section.find_all(["p", "div"]):
+name = person.find("h3") or person.find("b")
+position = person.find("span") or person.find("i")
+if name and position:
+employees.append(
+{
+"name": name.text.strip(),
+"position": position.text.strip(),
+}
+)
 
-        return employees
-    except requests.RequestException as e:
-        print(f"Ошибка при извлечении данных о сотрудниках с сайта: {e}")
-        return []
+return employees
+except requests.RequestException as e:
+print(f"Error retrieving employee data from the site: {e}")
+return []
 ```
 
-### 3. Сохранение данных в Excel
+### 3. Saving data to Excel
 
-Используем библиотеку `pandas` для сохранения данных в Excel файл.
+We use the `pandas` library to save data to an Excel file.
 
 ```python
 import pandas as pd
 
 def save_to_excel(data, filename="output.xlsx"):
-    """Функция для сохранения данных в Excel файл."""
-    try:
-        df = pd.DataFrame(data)
-        df.to_excel(filename, index=False)
-    except Exception as e:
-        print(f"Ошибка при сохранении данных в Excel файл: {e}")
+"""Function for saving data to an Excel file."""
+try:
+df = pd.DataFrame(data)
+df.to_excel(filename, index=False)
+except Exception as e:
+print(f"Error saving data to an Excel file: {e}")
 ```
 
-### 4. Основная функция
+### 4. Main function
 
-Объединяем все вышеуказанные шаги в основной функции.
+Combine all the above steps in the main function.
 
 ```python
 def main(find_inn):
-    try:
-        company_data = get_company_data_by_inn(find_inn)
-        if not company_data:
-            print("Не удалось получить данные об организации.")
-            return
+try:
+company_data = get_company_data_by_inn(find_inn)
+if not company_data:
+print("Failed to get company data.")
+return
 
-        website_url = company_data.get("website")
-        if not website_url:
-            print("Не удалось получить URL сайта организации.")
-            return
+website_url = company_data.get("website")
+if not website_url:
+print("Failed to get company website URL.")
+return
 
-        email = extract_email_from_website(website_url)
-        employees = extract_employees_from_website(website_url)
+email = extract_email_from_website(website_url)
+employees = extract_employees_from_website(website_url)
 
-        data = {"company": company_data["name"], "email": email, "employees": employees}
+data = {"company": company_data["name"], "email": email, "employees": employees}
 
-        save_to_excel(data)
-        print("Данные успешно сохранены в Excel файл.")
-    except Exception as e:
-        print(f"Ошибка в основной функции: {e}")
+save_to_excel(data)
+print("Data successfully saved to Excel file.")
+except Exception as e:
+print(f"Error in main function: {e}")
 
-# Пример использования
+# Usage example
 inn = "1234567890"
 main(inn)
 ```
 
-## Пример использования
+## Usage example
 
-Замените `1234567890` на необходимый ИНН организации и выполните скрипт. Результаты будут сохранены в файле `output.xlsx`.
+Replace `1234567890` with the required organization's TIN and execute the script. The results will be saved in the `output.xlsx` file.
 
-```python
-# Пример использования
+``python
+# Usage example
 inn = "1234567890"
 main(inn)
 ```
 
-## Заключение
-
-Этот парсер позволяет автоматически получать и сохранять в Excel основные контактные данные и информацию о сотрудниках организации по заданному ИНН.
+## Conclusion
+This parser allows you to automatically receive and save in Excel the main contact details and information about employees of an organization by the specified TIN.
