@@ -1,21 +1,59 @@
-На входе есть ИНН организации, на выходе в эксель получатаю с официальных публичных сайтов по заданному диапазону:
-1. Общую электронную почту организации (канцелярии или приемной). Как правило, данная почта есть в шапке сайта, подвале сайта, разделе Контакты / Связаться с нами.
-2. ФИО и должность сотрудников компании. Как правило, данная информация находится на странице Команда / Руководство / Контакты
+### Documentation for the Parser
 
-Шаги реализации
-1. Получение данных об организации по ИНН
-Для получения данных об организации по ИНН можно использовать публичные API, такие как API ФНС или другие открытые источники.
+#### Description
 
-2. Извлечение данных с сайтов
-Для извлечения данных с сайтов организации будем использовать веб-скрейпинг. Веб-скрейпинг можно выполнять с помощью библиотек Python, таких как requests, BeautifulSoup, и Selenium.
+This parser accepts the organization's TIN as input and collects the following information from official public sites:
 
-3. Сохранение данных в Excel
-Для сохранения данных в Excel используем библиотеку pandas.
+- General email of the organization (office or reception).
+- Full names and positions of company employees.
 
-Псевдокод
-1. Импортировать необходимые библиотеки
-2. Функция для получения данных об организации по ИНН
-3. Функция для извлечения электронной почты с сайта
-4. Функция для извлечения ФИО и должности сотрудников с сайта
-5. Функция для сохранения данных в Excel файл
-6. Основная функция, которая объединяет все вышеуказанные шаги
+#### Requirements
+
+The following Python libraries are required for the parser to work:
+
+- `requests` for sending HTTP requests.
+- `BeautifulSoup` from the `bs4` library for parsing HTML code.
+- `pandas` for working with data and saving it to Excel.
+
+Install them using pip:
+
+```sh
+pip install requests beautifulsoup4 pandas
+```
+
+#### Implementation Steps
+
+1. **Getting Data About an Organization by TIN**
+
+   A public API is used to get data about an organization by TIN.
+
+2. **Extracting Data from Websites**
+
+   - **Extracting Email**
+
+     An organization's email is usually located in the header, footer, or contacts section of a website.
+
+   - **Extracting Employee Names and Positions**
+
+     Employee information is usually located in the "Team", "Management" or "Contacts" section.
+
+3. **Saving Data to Excel**
+
+   The `pandas` library is used to save data to an Excel file.
+
+4. **Main Function**
+
+   Combine all the above steps in the main function.
+
+#### Usage Example
+
+Replace `1234567890` with the required organization's TIN and execute the script. The results will be saved in the `output.xlsx` file.
+
+```python
+inn = "1234567890"
+main(inn)
+```
+
+#### Conclusion
+
+This parser allows you to automatically receive and save in Excel the main contact details and information about employees of an organization by the specified TIN.
